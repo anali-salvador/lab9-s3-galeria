@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Galería en S3</title>
+  <meta name="description" content="Sube, mira y elimina imágenes guardadas en Amazon S3 con URLs firmadas.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Manchas de color difuminadas del fondo -->
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--rosa"></span>
+    <span class="blob blob--menta"></span>
+    <span class="blob blob--celeste"></span>
+    <span class="blob blob--amarillo"></span>
+    <span class="blob blob--lila"></span>
+  </div>
+
+  <div class="page">
+    <header class="hero">
+      <div class="hero__icon" aria-hidden="true">
+        <i data-lucide="sparkles"></i>
+      </div>
+      <h1 class="hero__title" data-text="Mi Galería en S3"><span>Mi Galería en S3</span></h1>
+      <p class="hero__subtitle">Sube tus fotos a la nube, míralas en grande y ordénalas cuando quieras.</p>
+      <p class="badge" aria-live="polite">
+        <i data-lucide="image" aria-hidden="true"></i>
+        <span id="image-count">0</span>&nbsp;<span id="image-count-label">imágenes</span>
+      </p>
+    </header>
+
+    <main>
+      <!-- Subida -->
+      <section class="panel upload" aria-labelledby="upload-title">
+        <h2 id="upload-title" class="section-title">
+          <i data-lucide="cloud-upload" aria-hidden="true"></i> Subir una imagen
+        </h2>
+
+        <label id="dropzone" class="dropzone" for="file-input" tabindex="0">
+          <svg class="dropzone__border" aria-hidden="true" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="arcoiris" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#FF8FAE" />
+                <stop offset="20%" stop-color="#FFAD7A" />
+                <stop offset="40%" stop-color="#F5CC4A" />
+                <stop offset="60%" stop-color="#7FD99A" />
+                <stop offset="80%" stop-color="#7CCBF2" />
+                <stop offset="100%" stop-color="#B49BFF" />
+              </linearGradient>
+            </defs>
+            <rect x="1" y="1" rx="20" ry="20" />
+          </svg>
+          <span class="dropzone__cloud" aria-hidden="true">
+            <i data-lucide="cloud-upload"></i>
+          </span>
+          <span class="dropzone__text">Arrastra tus imágenes aquí o <u>haz clic para elegir</u></span>
+          <span class="dropzone__note">JPG, PNG o WebP · máx. 5 MB</span>
+          <input id="file-input" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp">
+        </label>
+
+        <div id="preview" class="preview" hidden>
+          <img id="preview-img" class="preview__img" alt="Vista previa de la imagen elegida">
+          <div class="preview__info">
+            <p id="preview-name" class="preview__name"></p>
+            <p id="preview-size" class="preview__size"></p>
+            <div id="progress" class="progress" hidden>
+              <div class="progress__track" role="progressbar" aria-label="Progreso de la subida" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div id="progress-bar" class="progress__bar"></div>
+              </div>
+              <span id="progress-text" class="progress__text">0%</span>
+            </div>
+          </div>
+          <div class="preview__actions">
+            <button id="upload-btn" class="btn btn--menta" type="button">
+              <i data-lucide="cloud-upload" aria-hidden="true"></i> Subir
+            </button>
+            <button id="cancel-btn" class="btn btn--ghost" type="button">
+              <i data-lucide="x" aria-hidden="true"></i> Cancelar
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Galería -->
+      <section class="gallery-section" aria-labelledby="gallery-title">
+        <div class="gallery-head">
+          <h2 id="gallery-title" class="section-title">
+            <i data-lucide="images" aria-hidden="true"></i> Tus imágenes
+          </h2>
+          <button id="refresh-btn" class="btn btn--celeste btn--small" type="button">
+            <i data-lucide="refresh-cw" aria-hidden="true"></i> Actualizar
+          </button>
+        </div>
+
+        <div id="gallery" class="gallery" aria-live="polite" aria-busy="true"></div>
+
+        <div id="empty" class="empty" hidden>
+          <svg class="empty__art" viewBox="0 0 220 160" aria-hidden="true">
+            <ellipse cx="110" cy="146" rx="80" ry="8" fill="#D4C1FF" opacity=".6" />
+            <rect x="34" y="22" width="152" height="112" rx="18" fill="#FFF9F0" stroke="#2B2540" stroke-width="3" />
+            <rect x="34" y="22" width="152" height="18" rx="9" fill="#FFB3C7" stroke="#2B2540" stroke-width="3" />
+            <circle cx="80" cy="66" r="12" fill="#FFE699" stroke="#2B2540" stroke-width="3" />
+            <path d="M46 122 L88 84 L112 106 L136 80 L174 122 Z" fill="#B8F0C8" stroke="#2B2540" stroke-width="3" stroke-linejoin="round" />
+            <path d="M178 18 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4z" fill="#FFC9A3" stroke="#2B2540" stroke-width="2.5" stroke-linejoin="round" />
+            <path d="M26 46 l3 6 6 3 -6 3 -3 6 -3 -6 -6 -3 6 -3z" fill="#B3E5FC" stroke="#2B2540" stroke-width="2.5" stroke-linejoin="round" />
+          </svg>
+          <h3>Tu galería está esperando</h3>
+          <p>Todavía no hay imágenes aquí. Sube la primera y aparecerá en este espacio.</p>
+        </div>
+
+        <div id="load-error" class="empty empty--error" hidden>
+          <span class="empty__icon" aria-hidden="true"><i data-lucide="circle-alert"></i></span>
+          <h3>No pudimos cargar la galería</h3>
+          <p id="load-error-text">Revisa que el servidor esté encendido y vuelve a intentarlo.</p>
+          <button id="retry-btn" class="btn btn--amarillo" type="button">
+            <i data-lucide="refresh-cw" aria-hidden="true"></i> Reintentar
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      Hecho con Node.js, Express y Amazon S3 · Las imágenes se ven con URLs firmadas que caducan en 15 minutos.
+    </footer>
+  </div>
+
+  <!-- Vista ampliada -->
+  <dialog id="lightbox" class="lightbox" aria-labelledby="lightbox-caption">
+    <button class="icon-btn lightbox__close" type="button" data-close aria-label="Cerrar vista ampliada">
+      <i data-lucide="x" aria-hidden="true"></i>
+    </button>
+    <img id="lightbox-img" class="lightbox__img" alt="">
+    <p id="lightbox-caption" class="lightbox__caption"></p>
+  </dialog>
+
+  <!-- Confirmación de borrado -->
+  <dialog id="confirm" class="confirm" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+    <span class="confirm__icon" aria-hidden="true"><i data-lucide="trash-2"></i></span>
+    <h3 id="confirm-title">¿Eliminar esta imagen?</h3>
+    <p id="confirm-text">Se borrará de S3.</p>
+    <div class="confirm__actions">
+      <button id="confirm-cancel" class="btn btn--ghost" type="button">Cancelar</button>
+      <button id="confirm-ok" class="btn btn--rosa" type="button">
+        <i data-lucide="trash-2" aria-hidden="true"></i> Sí, eliminar
+      </button>
+    </div>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="assertive"></div>
+  <div id="confetti" class="confetti" aria-hidden="true"></div>
+
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
